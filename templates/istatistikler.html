@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Kütüphane İstatistikleri</h2>
+
+    <!-- Filtreleme Seçenekleri -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">Filtreleme Seçenekleri</h5>
+        </div>
+        <div class="card-body">
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tarih Aralığı</label>
+                    <select class="form-select" id="dateRange">
+                        <option value="all">Tüm Zamanlar</option>
+                        <option value="month">Son 1 Ay</option>
+                        <option value="year">Son 1 Yıl</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Yayınevi</label>
+                    <select class="form-select" id="publisher">
+                        <option value="all">Tüm Yayınevleri</option>
+                        {% for yayinevi in yayinevleri %}
+                        <option value="{{ yayinevi }}">{{ yayinevi }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Yazar</label>
+                    <select class="form-select" id="author">
+                        <option value="all">Tüm Yazarlar</option>
+                        {% for yazar in yazarlar %}
+                        <option value="{{ yazar }}">{{ yazar }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Kitap Sayısı</label>
+                    <select class="form-select" id="bookCount">
+                        <option value="all">Tümü</option>
+                        <option value="5">5'ten fazla</option>
+                        <option value="10">10'dan fazla</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <!-- Yayınevi Dağılımı -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Yayınevi Dağılımı</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="yayineviChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yazar Dağılımı -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">En Çok Kitabı Olan Yazarlar (İlk 10)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="yazarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Aylık Kitap Ekleme Trendi -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Aylık Kitap Ekleme Trendi</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yayınevi-Yazar Karşılaştırması -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Yayınevi-Yazar Karşılaştırması</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Genel İstatistikler -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Genel İstatistikler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ toplam_kitap }}</h3>
+                                <p>Toplam Kitap</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ toplam_yazar }}</h3>
+                                <p>Toplam Yazar</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ toplam_yayinevi }}</h3>
+                                <p>Toplam Yayınevi</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ ortalama_kitap }}</h3>
+                                <p>Yazar Başına Kitap</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Detaylı İstatistikler -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Detaylı İstatistikler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ en_uzun_arka_kapak }}</h3>
+                                <p>En Uzun Arka Kapak (karakter)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ kapak_resmi_olan }}</h3>
+                                <p>Kapak Resmi Olan Kitap</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ son_eklenen_kitap }}</h3>
+                                <p>Son Eklenen Kitap</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3>{{ ortalama_arka_kapak }}</h3>
+                                <p>Ortalama Arka Kapak Uzunluğu</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js kütüphanesi -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Yayınevi dağılımı grafiği
+const yayineviCtx = document.getElementById('yayineviChart').getContext('2d');
+new Chart(yayineviCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ yayinevi_etiketler|tojson }},
+        datasets: [{
+            data: {{ yayinevi_veriler|tojson }},
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'right'
+            }
+        }
+    }
+});
+
+// Yazar dağılımı grafiği
+const yazarCtx = document.getElementById('yazarChart').getContext('2d');
+new Chart(yazarCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ yazar_etiketler|tojson }},
+        datasets: [{
+            label: 'Kitap Sayısı',
+            data: {{ yazar_veriler|tojson }},
+            backgroundColor: '#36A2EB'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Aylık trend grafiği
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: {{ aylik_trend_etiketler|tojson }},
+        datasets: [{
+            label: 'Eklenen Kitap Sayısı',
+            data: {{ aylik_trend_veriler|tojson }},
+            borderColor: '#FF6384',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Radar grafiği
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+        labels: {{ radar_etiketler|tojson }},
+        datasets: [{
+            label: 'Yayınevleri',
+            data: {{ radar_yayinevi_veriler|tojson }},
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: '#36A2EB'
+        }, {
+            label: 'Yazarlar',
+            data: {{ radar_yazar_veriler|tojson }},
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: '#FF6384'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            r: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Filtreleme işlemleri
+document.querySelectorAll('#filterForm select').forEach(select => {
+    select.addEventListener('change', function() {
+        // Burada filtreleme işlemleri yapılacak
+        // AJAX ile sunucuya istek gönderilip grafikler güncellenecek
+    });
+});
+</script>
+{% endblock %} 

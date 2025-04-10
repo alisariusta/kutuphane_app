@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Kapak Resmi -->
+        <div class="col-md-3">
+            {% if kitap.kapak_resmi %}
+                <img src="{{ url_for('static', filename='kitap_kapak/' + kitap.kapak_resmi) }}" 
+                     alt="{{ kitap.baslik }} Kapak" class="img-fluid rounded">
+            {% else %}
+                <div class="text-center p-4 bg-light rounded">
+                    <i class="fas fa-book fa-4x text-muted"></i>
+                    <p class="mt-2 text-muted">Kapak resmi mevcut değil</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Kitap Bilgileri -->
+        <div class="col-md-9">
+            <h1>{{ kitap.baslik }}</h1>
+            
+            {% if kitap.yazar %}
+            <p class="lead">
+                <strong>Yazar:</strong> 
+                <a href="{{ url_for('yazar_detay', yazar_adi=kitap.yazar) }}">{{ kitap.yazar }}</a>
+            </p>
+            {% endif %}
+            
+            {% if kitap.yayinevi %}
+            <p>
+                <strong>Yayınevi:</strong> 
+                <a href="{{ url_for('yayinevi_detay', yayinevi_adi=kitap.yayinevi) }}">{{ kitap.yayinevi }}</a>
+            </p>
+            {% endif %}
+            
+            {% if kitap.arka_kapak %}
+            <div class="mt-4">
+                <h5>Arka Kapak</h5>
+                <p class="text-justify">{{ kitap.arka_kapak }}</p>
+            </div>
+            {% endif %}
+            
+            {% if kitap.ozel_not %}
+            <div class="mt-4">
+                <h5>Özel Not</h5>
+                <p class="text-justify">{{ kitap.ozel_not }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{{ url_for('kitap_duzenle', id=kitap.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Düzenle
+                </a>
+                <a href="{{ url_for('kitap_sil', id=kitap.id) }}" class="btn btn-danger" 
+                   onclick="return confirm('Bu kitabı silmek istediğinizden emin misiniz?')">
+                    <i class="fas fa-trash"></i> Sil
+                </a>
+                <a href="{{ url_for('ana_sayfa') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Geri
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function etiketEkle(kitapId) {
+    const etiketInput = document.getElementById('yeniEtiket');
+    const etiketAdi = etiketInput.value.trim();
+    
+    if (!etiketAdi) {
+        alert('Lütfen bir etiket adı girin');
+        return;
+    }
+    
+    fetch(`/kitap/${kitapId}/etiket_ekle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `etiket_adi=${encodeURIComponent(etiketAdi)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+function etiketSil(kitapId, etiketId) {
+    if (!confirm('Bu etiketi silmek istediğinizden emin misiniz?')) {
+        return;
+    }
+    
+    fetch(`/kitap/${kitapId}/etiket_sil/${etiketId}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+</script>
+
+<style>
+.etiketler-bolumu {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.etiket-listesi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.etiket {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    background-color: #e9ecef;
+    border-radius: 15px;
+    font-size: 14px;
+}
+
+.etiket-sil {
+    margin-left: 5px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 5px;
+}
+
+.etiket-sil:hover {
+    color: #dc3545;
+}
+
+.etiket-ekle {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.etiket-ekle input {
+    flex: 1;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.etiket-ekle button {
+    padding: 5px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.etiket-ekle button:hover {
+    background-color: #0056b3;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Toplu Kitap Yükleme</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">CSV Dosya Formatı</h5>
+            <p class="card-text">CSV dosyanız aşağıdaki sütunları içermelidir:</p>
+            <ul>
+                <li><strong>baslik</strong>: Kitap adı (zorunlu)</li>
+                <li><strong>yazar</strong>: Yazar adı (zorunlu)</li>
+                <li><strong>yayinevi</strong>: Yayınevi adı (zorunlu)</li>
+                <li><strong>arka_kapak</strong>: Arka kapak yazısı (opsiyonel)</li>
+                <li><strong>ozel_not</strong>: Özel not (opsiyonel)</li>
+                <li><strong>kapak_url</strong>: Kapak resmi URL'si (opsiyonel)</li>
+            </ul>
+            <p class="card-text">
+                <a href="/static/ornek.csv" download class="btn btn-sm btn-outline-primary">Örnek CSV İndir</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">CSV Dosyası Yükle</h5>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="csv_dosya" class="form-label">CSV Dosyası Seçin</label>
+                    <input type="file" class="form-control" id="csv_dosya" name="csv_dosya" accept=".csv" required>
+                    <div class="form-text">UTF-8 formatında CSV dosyası yükleyin.</div>
+                </div>
+                <button type="submit" class="btn btn-primary">Dosyayı Yükle ve Önizle</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

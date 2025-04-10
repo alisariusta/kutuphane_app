@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Toplu Kitap Yükleme - Önizleme</h2>
+    
+    <div class="alert alert-info">
+        <h5>Yüklenen Dosya: {{ dosya_adi }}</h5>
+        <p>Toplam {{ kitaplar|length }} kitap bulundu. Eklemek istediğiniz kitapları seçin ve onaylayın.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('toplu_kitap_kaydet') }}">
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="hepsini_sec">
+                <label class="form-check-label" for="hepsini_sec">
+                    Tümünü Seç/Kaldır
+                </label>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;">Seç</th>
+                        <th>Kitap Adı</th>
+                        <th>Yazar</th>
+                        <th>Yayınevi</th>
+                        <th>Kapak</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kitap in kitaplar %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="form-check-input kitap-sec" name="secili_kitaplar" 
+                                   value="{{ loop.index0 }}" {% if not kitap.hata %}checked{% endif %}>
+                        </td>
+                        <td>
+                            {{ kitap.baslik }}
+                            {% if kitap.arka_kapak %}
+                            <i class="fas fa-book-open text-muted" title="Arka kapak yazısı mevcut"></i>
+                            {% endif %}
+                        </td>
+                        <td>{{ kitap.yazar }}</td>
+                        <td>{{ kitap.yayinevi }}</td>
+                        <td>
+                            {% if kitap.kapak_url %}
+                            <img src="{{ kitap.kapak_url }}" alt="Kapak" style="max-height: 50px;">
+                            {% else %}
+                            <span class="text-muted">Kapak yok</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if kitap.hata %}
+                            <span class="text-danger">{{ kitap.hata }}</span>
+                            {% else %}
+                            <span class="text-success">Hazır</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-success">Seçili Kitapları Ekle</button>
+            <a href="{{ url_for('toplu_kitap_yukle') }}" class="btn btn-secondary">İptal</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hepsiniSec = document.getElementById('hepsini_sec');
+    const kitapCheckboxlar = document.querySelectorAll('.kitap-sec');
+
+    hepsiniSec.addEventListener('change', function() {
+        kitapCheckboxlar.forEach(checkbox => {
+            if (!checkbox.disabled) {
+                checkbox.checked = this.checked;
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

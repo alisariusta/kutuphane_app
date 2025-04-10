@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Yeni Kitap Ekle</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="baslik" class="form-label">Kitap Adı *</label>
+            <input type="text" class="form-control" id="baslik" name="baslik" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="yazar" class="form-label">Yazar *</label>
+            <input type="text" class="form-control" id="yazar" name="yazar" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="yayinevi" class="form-label">Yayınevi *</label>
+            <input type="text" class="form-control" id="yayinevi" name="yayinevi" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="arka_kapak" class="form-label">Arka Kapak</label>
+            <textarea class="form-control" id="arka_kapak" name="arka_kapak" rows="4"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="ozel_not" class="form-label">Özel Not</label>
+            <textarea class="form-control" id="ozel_not" name="ozel_not" rows="4"></textarea>
+        </div>
+
+        <!-- Kapak Resmi Yükleme Seçenekleri -->
+        <div class="mb-3">
+            <label class="form-label">Kapak Resmi</label>
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="yukleme_tipi" id="google_arama" value="google" checked>
+                    <label class="form-check-label" for="google_arama">Google'dan Ara</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="yukleme_tipi" id="dosya_yukle" value="dosya">
+                    <label class="form-check-label" for="dosya_yukle">Dosya Yükle</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="yukleme_tipi" id="url_gir" value="url">
+                    <label class="form-check-label" for="url_gir">URL Gir</label>
+                </div>
+            </div>
+
+            <!-- Google Arama Bölümü -->
+            <div id="google_arama_div">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="arama_terimi" placeholder="Kitap adını girin">
+                    <button class="btn btn-outline-secondary" type="button" onclick="kitapAra()">Ara</button>
+                </div>
+                <div id="arama_sonuclari" class="row"></div>
+            </div>
+
+            <!-- Dosya Yükleme Bölümü -->
+            <div id="dosya_yukleme_div" style="display: none;">
+                <input type="file" class="form-control" id="kapak_dosya" name="kapak_dosya" accept="image/*">
+            </div>
+
+            <!-- URL Girme Bölümü -->
+            <div id="url_girme_div" style="display: none;">
+                <input type="url" class="form-control" id="kapak_url" name="kapak_url" placeholder="Resim URL'sini girin">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kitabı Ekle</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Yükleme tipi seçimine göre bölümleri göster/gizle
+    const yuklemeTipleri = document.querySelectorAll('input[name="yukleme_tipi"]');
+    const googleAramaDiv = document.getElementById('google_arama_div');
+    const dosyaYuklemeDiv = document.getElementById('dosya_yukleme_div');
+    const urlGirmeDiv = document.getElementById('url_girme_div');
+
+    yuklemeTipleri.forEach(tip => {
+        tip.addEventListener('change', function() {
+            googleAramaDiv.style.display = this.value === 'google' ? 'block' : 'none';
+            dosyaYuklemeDiv.style.display = this.value === 'dosya' ? 'block' : 'none';
+            urlGirmeDiv.style.display = this.value === 'url' ? 'block' : 'none';
+        });
+    });
+
+    // Google arama işlemi
+    const aramaButon = document.getElementById('arama_buton');
+    const kitapArama = document.getElementById('kitap_arama');
+    const aramaSonuclari = document.getElementById('arama_sonuclari');
+
+    aramaButon.addEventListener('click', function() {
+        const query = kitapArama.value;
+        if (query) {
+            fetch(`/kitap_ara?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    aramaSonuclari.innerHTML = '';
+                    data.forEach(image => {
+                        const imgDiv = document.createElement('div');
+                        imgDiv.className = 'd-inline-block m-2';
+                        imgDiv.innerHTML = `
+                            <img src="${image}" alt="Kitap kapağı" style="max-width: 150px; cursor: pointer;" 
+                                 onclick="this.classList.toggle('border border-primary');">
+                        `;
+                        aramaSonuclari.appendChild(imgDiv);
+                    });
+                })
+                .catch(error => console.error('Arama hatası:', error));
+        }
+    });
+
+    // Form gönderilmeden önce kontrol
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const yuklemeTipi = document.querySelector('input[name="yukleme_tipi"]:checked').value;
+        let isValid = true;
+
+        if (yuklemeTipi === 'google') {
+            const seciliResim = document.querySelector('#arama_sonuclari img.border');
+            if (!seciliResim) {
+                alert('Lütfen bir kapak resmi seçin veya başka bir yükleme yöntemi seçin.');
+                isValid = false;
+            } else {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'secili_kapak';
+                input.value = seciliResim.src;
+                this.appendChild(input);
+            }
+        } else if (yuklemeTipi === 'dosya') {
+            const dosya = document.getElementById('kapak_dosya');
+            if (!dosya.files.length) {
+                alert('Lütfen bir dosya seçin.');
+                isValid = false;
+            }
+        } else if (yuklemeTipi === 'url') {
+            const url = document.getElementById('kapak_url');
+            if (!url.value) {
+                alert('Lütfen bir URL girin.');
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %} 

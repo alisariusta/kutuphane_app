@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Yeni Kitap Ekle</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="baslik" class="form-label">Kitap Adı *</label>
+            <input type="text" class="form-control" id="baslik" name="baslik" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="yazar" class="form-label">Yazar *</label>
+            <input type="text" class="form-control" id="yazar" name="yazar" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="yayinevi" class="form-label">Yayınevi *</label>
+            <input type="text" class="form-control" id="yayinevi" name="yayinevi" required>
+        </div>
+
+        <div class="mb-3">
+            <button type="button" class="btn btn-info" onclick="kitapDetayAra()">
+                <i class="fas fa-search"></i> Kitap Detaylarını Getir
+            </button>
+        </div>
+
+        <!-- Arama Sonuçları -->
+        <div id="arama-sonuclari" class="mt-4" style="display: none;">
+            <h4>Arama Sonuçları</h4>
+            <div class="list-group">
+                <!-- Arama sonuçları buraya gelecek -->
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="arka_kapak" class="form-label">Arka Kapak</label>
+            <textarea class="form-control" id="arka_kapak" name="arka_kapak" rows="4"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Kapak Resmi</label>
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="yukleme_tipi" id="google_arama" value="google" checked>
+                    <label class="form-check-label" for="google_arama">Google'dan Ara</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="yukleme_tipi" id="dosya_yukle" value="dosya">
+                    <label class="form-check-label" for="dosya_yukle">Dosya Yükle</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="yukleme_tipi" id="url_gir" value="url">
+                    <label class="form-check-label" for="url_gir">URL Gir</label>
+                </div>
+            </div>
+
+            <!-- Google Arama Bölümü -->
+            <div id="google_arama_div">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="arama_terimi" placeholder="Kitap adını girin">
+                    <button class="btn btn-outline-secondary" type="button" onclick="kitapAra()">Ara</button>
+                </div>
+                <div id="arama_sonuclari" class="row"></div>
+            </div>
+
+            <!-- Dosya Yükleme Bölümü -->
+            <div id="dosya_yukleme_div" style="display: none;">
+                <input type="file" class="form-control" id="kapak_dosya" name="kapak_dosya" accept="image/*">
+            </div>
+
+            <!-- URL Girme Bölümü -->
+            <div id="url_girme_div" style="display: none;">
+                <input type="url" class="form-control" id="kapak_url" name="kapak_url" placeholder="Resim URL'sini girin">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kitabı Ekle</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Yükleme tipi seçimine göre bölümleri göster/gizle
+    const yuklemeTipleri = document.querySelectorAll('input[name="yukleme_tipi"]');
+    const googleAramaDiv = document.getElementById('google_arama_div');
+    const dosyaYuklemeDiv = document.getElementById('dosya_yukleme_div');
+    const urlGirmeDiv = document.getElementById('url_girme_div');
+
+    yuklemeTipleri.forEach(tip => {
+        tip.addEventListener('change', function() {
+            googleAramaDiv.style.display = this.value === 'google' ? 'block' : 'none';
+            dosyaYuklemeDiv.style.display = this.value === 'dosya' ? 'block' : 'none';
+            urlGirmeDiv.style.display = this.value === 'url' ? 'block' : 'none';
+        });
+    });
+});
+
+function kitapAra() {
+    const aramaTerimi = document.getElementById('arama_terimi').value;
+    if (!aramaTerimi) {
+        alert('Lütfen bir arama terimi girin');
+        return;
+    }
+
+    fetch(`/kitap_ara?q=${encodeURIComponent(aramaTerimi)}`)
+        .then(response => response.json())
+        .then(data => {
+            const sonuclarDiv = document.getElementById('arama_sonuclari');
+            sonuclarDiv.innerHTML = '';
+            
+            data.forEach(image => {
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'col-md-2 mb-3';
+                imgDiv.innerHTML = `
+                    <img src="${image}" alt="Kitap kapağı" class="img-fluid" 
+                         style="cursor: pointer; max-height: 200px; object-fit: contain;"
+                         onclick="resimSec(this)">
+                `;
+                sonuclarDiv.appendChild(imgDiv);
+            });
+        })
+        .catch(error => {
+            console.error('Arama hatası:', error);
+            alert('Arama sırasında bir hata oluştu');
+        });
+}
+
+function resimSec(img) {
+    // Önceki seçili resimlerin seçimini kaldır
+    document.querySelectorAll('#arama_sonuclari img').forEach(i => {
+        i.classList.remove('border', 'border-primary');
+    });
+    
+    // Yeni resmi seç
+    img.classList.add('border', 'border-primary');
+    
+    // URL'yi otomatik olarak URL giriş alanına kopyala
+    document.getElementById('url_gir').checked = true;
+    document.getElementById('url_girme_div').style.display = 'block';
+    document.getElementById('google_arama_div').style.display = 'none';
+    document.getElementById('dosya_yukleme_div').style.display = 'none';
+    document.getElementById('kapak_url').value = img.src;
+}
+
+function kitapDetayAra() {
+    const baslik = document.getElementById('baslik').value;
+    if (!baslik) {
+        alert('Lütfen en az kitap adını girin!');
+        return;
+    }
+
+    const sonuclarDiv = document.getElementById('arama-sonuclari');
+    const sonuclarListesi = sonuclarDiv.querySelector('.list-group');
+    sonuclarListesi.innerHTML = '<div class="text-center">Aranıyor...</div>';
+    sonuclarDiv.style.display = 'block';
+
+    fetch(`/kitap_detay_ara?q=${encodeURIComponent(baslik)}`)
+        .then(response => response.json())
+        .then(data => {
+            sonuclarListesi.innerHTML = '';
+            if (data.error) {
+                sonuclarListesi.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+            if (!data.items || data.items.length === 0) {
+                sonuclarListesi.innerHTML = '<div class="alert alert-warning">Sonuç bulunamadı.</div>';
+                return;
+            }
+            data.items.forEach((kitap, index) => {
+                const sonucHtml = `
+                    <a href="#" class="list-group-item list-group-item-action" onclick="seciliKitapSec(${index})">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-1">${kitap.baslik}</h5>
+                        </div>
+                        <p class="mb-1">
+                            <strong>Yazar:</strong> ${kitap.yazar || 'Belirtilmemiş'}<br>
+                            <strong>Yayınevi:</strong> ${kitap.yayinevi || 'Belirtilmemiş'}
+                        </p>
+                    </a>`;
+                sonuclarListesi.innerHTML += sonucHtml;
+            });
+            window.kitapSonuclari = data.items;
+        })
+        .catch(error => {
+            sonuclarListesi.innerHTML = `<div class="alert alert-danger">Bir hata oluştu: ${error}</div>`;
+        });
+}
+
+function seciliKitapSec(index) {
+    const kitap = window.kitapSonuclari[index];
+    if (kitap) {
+        document.getElementById('baslik').value = kitap.baslik || '';
+        document.getElementById('yazar').value = kitap.yazar || '';
+        document.getElementById('yayinevi').value = kitap.yayinevi || '';
+        document.getElementById('arka_kapak').value = kitap.arka_kapak || '';
+        
+        // Google araması için kitap adını otomatik doldur
+        document.getElementById('arama_terimi').value = kitap.baslik;
+        
+        // Kapak resmi varsa göster
+        if (kitap.kapak_url) {
+            document.getElementById('secili_kapak').value = kitap.kapak_url;
+            document.getElementById('kapak_onizleme').src = kitap.kapak_url;
+            document.getElementById('kapak_onizleme').style.display = 'block';
+        }
+    }
+}
+</script>
+{% endblock %} 
