@@ -50,6 +50,7 @@ class Kitap(db.Model):
     yayinevi = db.Column(db.String(100))
     arka_kapak = db.Column(db.Text)
     kapak_resmi = db.Column(db.String(500))
+    ozel_not = db.Column(db.Text)
     eklenme_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -158,11 +159,19 @@ def ana_sayfa():
         print(f"Ana sayfa görüntülenirken hata: {str(e)}")
         return f"Bir hata oluştu: {str(e)}", 500
 
-# Kitap detay sayfası
-@app.route('/kitap/<int:id>')
-def kitap_detay(id):
-    kitap = Kitap.query.get_or_404(id)
-    return render_template('kitap_detay.html', kitap=kitap)
+@app.route('/kitap/<int:kitap_id>')
+def kitap_detay(kitap_id):
+    kitap = Kitap.query.get_or_404(kitap_id)
+    
+    # Yazarın diğer kitaplarını bul
+    yazar_kitaplari = Kitap.query.filter(
+        Kitap.yazar == kitap.yazar,
+        Kitap.id != kitap.id
+    ).all()
+    
+    return render_template('kitap_detay.html', 
+                         kitap=kitap, 
+                         yazar_kitaplari=yazar_kitaplari)
 
 # Yeni kitap ekle
 @app.route('/kitap_ekle', methods=['GET', 'POST'])
@@ -532,7 +541,7 @@ def arama_sonuclari():
     
     return jsonify(sonuclar)
 
-@app.route('/toplu-kitap-yukle', methods=['GET', 'POST'])
+@app.route('/toplu_kitap_yukle', methods=['GET', 'POST'])
 def toplu_kitap_yukle():
     if request.method == 'POST':
         if 'csv_dosya' not in request.files:
@@ -586,58 +595,36 @@ def toplu_kitap_yukle():
     
     return render_template('toplu_kitap_yukle.html')
 
-@app.route('/toplu-kitap-kaydet', methods=['POST'])
+@app.route('/toplu_kitap_kaydet', methods=['POST'])
 def toplu_kitap_kaydet():
     if 'yuklenecek_kitaplar' not in session:
-        flash('Oturum süresi dolmuş, lütfen dosyayı tekrar yükleyin', 'error')
+        flash('Yüklenecek kitap bulunamadı', 'error')
         return redirect(url_for('toplu_kitap_yukle'))
     
-    secili_indexler = request.form.getlist('secili_kitaplar')
+    secili_kitaplar = request.form.getlist('secili_kitaplar')
     kitaplar = session['yuklenecek_kitaplar']
     
-    eklenen = 0
-    hatali = 0
-    
-    for index in secili_indexler:
-        try:
-            kitap_data = kitaplar[int(index)]
-            if not kitap_data['hata']:  # Sadece hatasız kitapları ekle
-                yeni_kitap = Kitap(
-                    baslik=kitap_data['baslik'],
-                    yazar=kitap_data['yazar'],
-                    yayinevi=kitap_data['yayinevi'],
-                    arka_kapak=kitap_data['arka_kapak']
-                )
-                
-                # Kapak URL'si varsa kaydet
-                if kitap_data['kapak_url']:
-                    try:
-                        response = requests.get(kitap_data['kapak_url'])
-                        if response.status_code == 200:
-                            dosya_adi = f"kitap_{yeni_kitap.id}_kapak"
-                            dosya_yolu = os.path.join(app.config['UPLOAD_FOLDER'], dosya_adi)
-                            with open(dosya_yolu, 'wb') as f:
-                                f.write(response.content)
-                            yeni_kitap.kapak_resmi = dosya_adi
-                    except:
-                        pass  # Kapak indirme hatası olursa yoksay
-                
-                db.session.add(yeni_kitap)
-                eklenen += 1
-        except:
-            hatali += 1
-    
     try:
+        for index in secili_kitaplar:
+            kitap = kitaplar[int(index)]
+            if not kitap.get('hata'):
+                yeni_kitap = Kitap(
+                    baslik=kitap['baslik'],
+                    yazar=kitap['yazar'],
+                    yayinevi=kitap['yayinevi'],
+                    arka_kapak=kitap.get('arka_kapak', '')
+                )
+                db.session.add(yeni_kitap)
+        
         db.session.commit()
-        flash(f'{eklenen} kitap başarıyla eklendi. {hatali} kitap eklenemedi.', 'success')
-    except:
+        session.pop('yuklenecek_kitaplar', None)
+        flash('Kitaplar başarıyla eklendi', 'success')
+        return redirect(url_for('ana_sayfa'))
+        
+    except Exception as e:
         db.session.rollback()
-        flash('Kitaplar eklenirken bir hata oluştu', 'error')
-    
-    # Session'dan geçici verileri temizle
-    session.pop('yuklenecek_kitaplar', None)
-    
-    return redirect(url_for('ana_sayfa'))
+        flash(f'Kitaplar eklenirken bir hata oluştu: {str(e)}', 'error')
+        return redirect(url_for('toplu_kitap_yukle'))
 
 @app.route('/yazarlar')
 def yazarlar():
@@ -921,6 +908,56 @@ def istatistikler():
                          yayinevleri=yayinevleri,
                          yazarlar=yazarlar)
 
+@app.route('/gelismis_arama', methods=['GET', 'POST'])
+def gelismis_arama():
+    if request.method == 'POST':
+        baslik = request.form.get('baslik', '')
+        yazar = request.form.get('yazar', '')
+        yayinevi = request.form.get('yayinevi', '')
+        yil_baslangic = request.form.get('yil_baslangic', '')
+        yil_bitis = request.form.get('yil_bitis', '')
+        sayfa_baslangic = request.form.get('sayfa_baslangic', '')
+        sayfa_bitis = request.form.get('sayfa_bitis', '')
+
+        # Temel sorgu
+        sorgu = Kitap.query
+
+        # Filtreleri uygula
+        if baslik:
+            sorgu = sorgu.filter(Kitap.baslik.ilike(f'%{baslik}%'))
+        if yazar:
+            sorgu = sorgu.filter(Kitap.yazar.ilike(f'%{yazar}%'))
+        if yayinevi:
+            sorgu = sorgu.filter(Kitap.yayinevi.ilike(f'%{yayinevi}%'))
+        if yil_baslangic:
+            sorgu = sorgu.filter(Kitap.yayin_yili >= int(yil_baslangic))
+        if yil_bitis:
+            sorgu = sorgu.filter(Kitap.yayin_yili <= int(yil_bitis))
+        if sayfa_baslangic:
+            sorgu = sorgu.filter(Kitap.sayfa_sayisi >= int(sayfa_baslangic))
+        if sayfa_bitis:
+            sorgu = sorgu.filter(Kitap.sayfa_sayisi <= int(sayfa_bitis))
+
+        kitaplar = sorgu.all()
+        return render_template('gelismis_arama.html', kitaplar=kitaplar, 
+                             baslik=baslik, yazar=yazar, yayinevi=yayinevi,
+                             yil_baslangic=yil_baslangic, yil_bitis=yil_bitis,
+                             sayfa_baslangic=sayfa_baslangic, sayfa_bitis=sayfa_bitis)
+    
+    return render_template('gelismis_arama.html')
+
+@app.route('/yazar/<yazar>')
+def yazar_kitaplari(yazar):
+    sayfa = request.args.get('sayfa', 1, type=int)
+    kitaplar = Kitap.query.filter_by(yazar=yazar).order_by(Kitap.baslik).paginate(page=sayfa, per_page=15)
+    return render_template('yazar_kitaplari.html', kitaplar=kitaplar, yazar=yazar)
+
+@app.route('/yayinevi/<yayinevi>')
+def yayinevi_kitaplari(yayinevi):
+    sayfa = request.args.get('sayfa', 1, type=int)
+    kitaplar = Kitap.query.filter_by(yayinevi=yayinevi).order_by(Kitap.baslik).paginate(page=sayfa, per_page=15)
+    return render_template('yayinevi_kitaplari.html', kitaplar=kitaplar, yayinevi=yayinevi)
+
 if __name__ == '__main__':
     with app.app_context():
         try:
@@ -934,4 +971,4 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Veritabanı oluşturulurken hata: {str(e)}")
     
-    app.run(host='0.0.0.0', port=3000) 
+    app.run(host='0.0.0.0', port=3000, debug=True) 

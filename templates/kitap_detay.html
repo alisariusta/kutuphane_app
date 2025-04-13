@@ -3,175 +3,234 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row">
-        <!-- Kapak Resmi -->
-        <div class="col-md-3">
-            {% if kitap.kapak_resmi %}
+        <!-- Sol Kolon - Kitap Kapağı -->
+        <div class="col-md-4">
+            <div class="kitap-kapak-container">
+                {% if kitap.kapak_resmi %}
                 <img src="{{ url_for('static', filename='kitap_kapak/' + kitap.kapak_resmi) }}" 
-                     alt="{{ kitap.baslik }} Kapak" class="img-fluid rounded">
-            {% else %}
-                <div class="text-center p-4 bg-light rounded">
-                    <i class="fas fa-book fa-4x text-muted"></i>
-                    <p class="mt-2 text-muted">Kapak resmi mevcut değil</p>
+                     class="img-fluid rounded shadow" alt="{{ kitap.baslik }}">
+                {% else %}
+                <div class="no-image-placeholder rounded shadow d-flex align-items-center justify-content-center">
+                    <i class="fas fa-book fa-3x text-muted"></i>
                 </div>
-            {% endif %}
+                {% endif %}
+                
+                <div class="islem-butonlari mt-3">
+                    <a href="{{ url_for('kitap_duzenle', id=kitap.id) }}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-edit"></i> Düzenle
+                    </a>
+                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#silModal">
+                        <i class="fas fa-trash"></i> Sil
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <!-- Kitap Bilgileri -->
-        <div class="col-md-9">
-            <h1>{{ kitap.baslik }}</h1>
-            
-            {% if kitap.yazar %}
-            <p class="lead">
-                <strong>Yazar:</strong> 
-                <a href="{{ url_for('yazar_detay', yazar_adi=kitap.yazar) }}">{{ kitap.yazar }}</a>
-            </p>
-            {% endif %}
-            
-            {% if kitap.yayinevi %}
-            <p>
-                <strong>Yayınevi:</strong> 
-                <a href="{{ url_for('yayinevi_detay', yayinevi_adi=kitap.yayinevi) }}">{{ kitap.yayinevi }}</a>
-            </p>
-            {% endif %}
-            
-            {% if kitap.arka_kapak %}
-            <div class="mt-4">
-                <h5>Arka Kapak</h5>
-                <p class="text-justify">{{ kitap.arka_kapak }}</p>
+
+        <!-- Sağ Kolon - Kitap Bilgileri -->
+        <div class="col-md-8">
+            <div class="kitap-bilgileri">
+                <h1 class="kitap-baslik mb-4">{{ kitap.baslik }}</h1>
+                
+                <div class="meta-bilgiler mb-4">
+                    <div class="meta-item">
+                        <a href="{{ url_for('yazar_kitaplari', yazar=kitap.yazar) }}" class="meta-value">
+                            <i class="fas fa-user-edit me-2"></i>{{ kitap.yazar }}
+                        </a>
+                    </div>
+                    <div class="meta-item">
+                        <a href="{{ url_for('yayinevi_kitaplari', yayinevi=kitap.yayinevi) }}" class="meta-value">
+                            <i class="fas fa-building me-2"></i>{{ kitap.yayinevi }}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="kitap-icerik">
+                    <div class="arka-kapak mb-4">
+                        <h3 class="icerik-baslik">Arka Kapak</h3>
+                        <p class="icerik-metin">{{ kitap.arka_kapak }}</p>
+                    </div>
+
+                    {% if kitap.ozel_not %}
+                    <div class="ozel-not mb-4">
+                        <h3 class="icerik-baslik">Özel Not</h3>
+                        <p class="icerik-metin">{{ kitap.ozel_not }}</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            {% endif %}
-            
-            {% if kitap.ozel_not %}
-            <div class="mt-4">
-                <h5>Özel Not</h5>
-                <p class="text-justify">{{ kitap.ozel_not }}</p>
+        </div>
+    </div>
+
+    <!-- Yazarın Diğer Kitapları -->
+    {% if yazarin_diger_kitaplari %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="diger-kitaplar-baslik mb-4">Yazarın Diğer Kitapları</h3>
+            <div class="row">
+                {% for diger_kitap in yazarin_diger_kitaplari %}
+                <div class="col-md-3 mb-4">
+                    <div class="diger-kitap-kart">
+                        {% if diger_kitap.kapak_resmi %}
+                        <img src="{{ url_for('static', filename='kitap_kapak/' + diger_kitap.kapak_resmi) }}" 
+                             class="img-fluid rounded" alt="{{ diger_kitap.baslik }}">
+                        {% else %}
+                        <div class="no-image-placeholder rounded d-flex align-items-center justify-content-center">
+                            <i class="fas fa-book fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="diger-kitap-bilgi">
+                            <h5 class="diger-kitap-baslik">{{ diger_kitap.baslik }}</h5>
+                            <p class="diger-kitap-meta">{{ diger_kitap.yayinevi }} - {{ diger_kitap.yayin_yili }}</p>
+                            <a href="{{ url_for('kitap_detay', kitap_id=diger_kitap.id) }}" 
+                               class="btn btn-sm btn-link p-0">Detaylar</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            {% endif %}
-            
-            <div class="mt-4">
-                <a href="{{ url_for('kitap_duzenle', id=kitap.id) }}" class="btn btn-primary">
-                    <i class="fas fa-edit"></i> Düzenle
-                </a>
-                <a href="{{ url_for('kitap_sil', id=kitap.id) }}" class="btn btn-danger" 
-                   onclick="return confirm('Bu kitabı silmek istediğinizden emin misiniz?')">
-                    <i class="fas fa-trash"></i> Sil
-                </a>
-                <a href="{{ url_for('ana_sayfa') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Geri
-                </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Silme Modal -->
+<div class="modal fade" id="silModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Kitabı Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                <p>"{{ kitap.baslik }}" kitabını silmek istediğinizden emin misiniz?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                <a href="{{ url_for('kitap_sil', id=kitap.id) }}" class="btn btn-danger">Sil</a>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-function etiketEkle(kitapId) {
-    const etiketInput = document.getElementById('yeniEtiket');
-    const etiketAdi = etiketInput.value.trim();
-    
-    if (!etiketAdi) {
-        alert('Lütfen bir etiket adı girin');
-        return;
-    }
-    
-    fetch(`/kitap/${kitapId}/etiket_ekle`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `etiket_adi=${encodeURIComponent(etiketAdi)}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.message);
-        }
-    });
-}
-
-function etiketSil(kitapId, etiketId) {
-    if (!confirm('Bu etiketi silmek istediğinizden emin misiniz?')) {
-        return;
-    }
-    
-    fetch(`/kitap/${kitapId}/etiket_sil/${etiketId}`, {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.message);
-        }
-    });
-}
-</script>
-
 <style>
-.etiketler-bolumu {
-    margin: 20px 0;
-    padding: 15px;
+.kitap-kapak-container {
+    position: sticky;
+    top: 20px;
+}
+
+.kitap-kapak-container img,
+.no-image-placeholder {
+    width: 100%;
+    height: 400px;
+    object-fit: contain;
     background-color: #f8f9fa;
-    border-radius: 5px;
 }
 
-.etiket-listesi {
+.no-image-placeholder {
+    background-color: #f8f9fa;
+}
+
+.islem-butonlari {
+    margin-top: 20px;
+}
+
+.kitap-bilgileri {
+    padding: 20px;
+}
+
+.kitap-baslik {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #343a40;
+    line-height: 1.2;
+}
+
+.meta-bilgiler {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 10px 0;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
-.etiket {
-    display: inline-flex;
+.meta-item {
+    display: flex;
     align-items: center;
-    padding: 5px 10px;
-    background-color: #e9ecef;
-    border-radius: 15px;
-    font-size: 14px;
 }
 
-.etiket-sil {
-    margin-left: 5px;
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    font-size: 16px;
-    padding: 0 5px;
-}
-
-.etiket-sil:hover {
-    color: #dc3545;
-}
-
-.etiket-ekle {
+.meta-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #343a40;
+    text-decoration: none;
+    line-height: 1.2;
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    align-items: center;
 }
 
-.etiket-ekle input {
-    flex: 1;
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.meta-value:hover {
+    color: #0056b3;
 }
 
-.etiket-ekle button {
-    padding: 5px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+.icerik-baslik {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 1rem;
 }
 
-.etiket-ekle button:hover {
-    background-color: #0056b3;
+.icerik-metin {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.diger-kitaplar-baslik {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.diger-kitap-kart {
+    transition: transform 0.2s;
+}
+
+.diger-kitap-kart:hover {
+    transform: translateY(-5px);
+}
+
+.diger-kitap-kart img,
+.diger-kitap-kart .no-image-placeholder {
+    height: 200px;
+    object-fit: contain;
+    background-color: #f8f9fa;
+}
+
+.diger-kitap-bilgi {
+    padding: 15px;
+}
+
+.diger-kitap-baslik {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #343a40;
+}
+
+.diger-kitap-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.btn-link {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    color: #003d82;
+    text-decoration: underline;
 }
 </style>
 {% endblock %} 

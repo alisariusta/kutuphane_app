@@ -20,7 +20,7 @@
                     <tbody>
                         {% for kitap in kitaplar %}
                         <tr>
-                            <td><a href="{{ url_for('kitap_detay', id=kitap.id) }}" class="text-dark text-decoration-none">{{ kitap.baslik }}</a></td>
+                            <td><a href="{{ url_for('kitap_detay', kitap_id=kitap.id) }}" class="text-dark text-decoration-none">{{ kitap.baslik }}</a></td>
                             <td><a href="{{ url_for('yayinevi_detay', yayinevi_adi=kitap.yayinevi) }}" class="text-dark text-decoration-none">{{ kitap.yayinevi }}</a></td>
                         </tr>
                         {% endfor %}

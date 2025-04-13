@@ -3,265 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Kütüphane{% endblock %}</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Kütüphane Uygulaması</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <style>
-        :root {
-            --primary-color: #6366f1;
-            --secondary-color: #4f46e5;
-            --accent-color: #818cf8;
-            --light-color: #f3f4f6;
-            --dark-color: #1f2937;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-        }
-
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8fafc;
-            color: var(--dark-color);
+            background-color: #f8f9fa;
+            color: #212529;
         }
-
         .navbar {
-            background-color: var(--primary-color);
+            background-color: #343a40 !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
-        .navbar-brand {
-            font-weight: 600;
-            color: white !important;
-            font-size: 1.25rem;
+        .navbar-brand, .nav-link {
+            color: #f8f9fa !important;
         }
-
-        .nav-link {
-            color: rgba(255,255,255,0.9) !important;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
         .nav-link:hover {
-            color: white !important;
-            transform: translateY(-1px);
+            color: #adb5bd !important;
         }
-
-        .container {
-            max-width: 1200px;
-            padding: 2rem 1rem;
-        }
-
         .card {
             border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
-
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.1);
         }
-
         .btn-primary {
-            background-color: var(--primary-color);
-            border: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            background-color: #343a40;
+            border-color: #343a40;
+            color: #f8f9fa;
         }
-
         .btn-primary:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-1px);
+            background-color: #212529;
+            border-color: #212529;
+            color: #f8f9fa;
         }
-
+        .btn-secondary {
+            background-color: #495057;
+            border-color: #495057;
+            color: #f8f9fa;
+        }
+        .btn-secondary:hover {
+            background-color: #343a40;
+            border-color: #343a40;
+            color: #f8f9fa;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: #f8f9fa;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+            color: #f8f9fa;
+        }
         .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-            font-weight: 500;
+            color: #343a40;
+            border-color: #343a40;
         }
-
         .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
+            background-color: #343a40;
+            border-color: #343a40;
+            color: #f8f9fa;
         }
-
-        .alert {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        .btn-outline-secondary {
+            color: #495057;
+            border-color: #495057;
         }
-
+        .btn-outline-secondary:hover {
+            background-color: #495057;
+            border-color: #495057;
+            color: #f8f9fa;
+        }
         .table {
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
-        .table thead {
-            background-color: var(--primary-color);
-            color: white;
+        .table thead th {
+            background-color: #343a40;
+            color: #f8f9fa;
+            border-color: #495057;
         }
-
-        .pagination {
-            margin-top: 2rem;
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
         }
-
-        .page-link {
-            color: var(--primary-color);
-            border-radius: 8px;
-            margin: 0 4px;
-            font-weight: 500;
+        .alert-info {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #212529;
         }
-
-        .page-item.active .page-link {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+        .alert-info h5 {
+            color: #343a40;
         }
-
-        /* Form stilleri */
+        .dropdown-menu {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .table {
+            background-color: #ffffff;
+        }
+        .table td {
+            border-color: #dee2e6;
+        }
         .form-control {
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            padding: 0.75rem;
-            font-weight: 400;
+            background-color: #ffffff;
+            border-color: #dee2e6;
         }
-
         .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+            background-color: #ffffff;
+            border-color: #6c757d;
         }
-
-        /* Kitap kartı stilleri */
-        .kitap-kart {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+        .search-results {
+            background-color: #ffffff;
+            border-color: #dee2e6;
         }
-
-        .kitap-kart .card-img-top {
-            height: 300px;
-            object-fit: cover;
-            border-radius: 12px 12px 0 0;
+        .search-result-item {
+            border-color: #dee2e6;
         }
-
-        .kitap-kart .card-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 1.25rem;
+        .search-result-item:hover {
+            background-color: #f8f9fa;
         }
-
-        .kitap-kart .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--dark-color);
+        .page-link {
+            background-color: #ffffff;
+            border-color: #dee2e6;
+            color: #343a40;
         }
-
-        .kitap-kart .card-text {
-            color: #6b7280;
-            font-size: 0.9rem;
-            font-weight: 400;
+        .page-link:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #343a40;
         }
-
-        /* İstatistik kartları */
-        .istatistik-kart {
-            text-align: center;
-            padding: 1.5rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
+        .page-item.active .page-link {
+            background-color: #343a40;
+            border-color: #343a40;
+            color: #ffffff;
         }
-
-        .istatistik-kart i {
-            font-size: 2rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 1rem;
+        .alert {
+            background-color: #ffffff;
+            border-color: #dee2e6;
         }
-
-        .istatistik-kart h3 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: white;
+        a {
+            color: #adb5bd;
         }
-
-        .istatistik-kart p {
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0;
-            font-weight: 400;
-        }
-
-        /* Responsive düzenlemeler */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .kitap-kart .card-img-top {
-                height: 200px;
-            }
-
-            .istatistik-kart {
-                margin-bottom: 1rem;
-            }
+        a:hover {
+            color: #e9ecef;
         }
     </style>
-    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-book-reader me-2"></i>Kütüphane
-            </a>
+            <a class="navbar-brand" href="{{ url_for('ana_sayfa') }}">Kütüphane</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="fas fa-home me-1"></i>Ana Sayfa
-                        </a>
+                        <a class="nav-link" href="{{ url_for('ana_sayfa') }}">Ana Sayfa</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/kitap_ekle">
-                            <i class="fas fa-plus me-1"></i>Kitap Ekle
-                        </a>
+                        <a class="nav-link" href="{{ url_for('kitap_ekle') }}">Kitap Ekle</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/toplu_kitap_yukle">
-                            <i class="fas fa-upload me-1"></i>Toplu Yükle
-                        </a>
+                        <a class="nav-link" href="{{ url_for('toplu_kitap_yukle') }}">Toplu Yükle</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/istatistikler">
-                            <i class="fas fa-chart-bar me-1"></i>İstatistikler
-                        </a>
+                        <a class="nav-link" href="{{ url_for('istatistikler') }}">İstatistikler</a>
                     </li>
                 </ul>
+                <div class="ms-auto text-light" id="current-time">
+                    <span id="date-time"></span>
+                    <i class="fas fa-clock ms-1"></i>
+                </div>
             </div>
         </div>
     </nav>
 
+    <!-- Ana İçerik -->
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                         {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -270,10 +207,30 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    {% block extra_js %}{% endblock %}
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}
+    <script>
+    function updateDateTime() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        };
+        document.getElementById('date-time').textContent = now.toLocaleDateString('tr-TR', options);
+    }
+
+    // Sayfa yüklendiğinde ve her saniye güncelle
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    });
+    </script>
+    {% endblock %}
 </body>
 </html> 
